@@ -52,46 +52,63 @@ for img_name, label_name in zip(data_list, labels_list):
     #da qui in poi cambiano center W e h
     img = cv2.resize(img,(160,120),cv2.INTER_CUBIC)
     label = label/2
-    #todo usa sempre img diverse per le transformazioni perche altrimenti propaghi errori
-    #SCALING
-    #TUNABLE
-    scales = [1.25,1.0,0.75]
-    for scale in scales:
-        T = cv2.getRotationMatrix2D(center, 0, scale)
-        img_s = cv2.warpAffine(img, T, (W, H), borderValue=(125, 125, 125))
-        label_s = T.dot(np.insert(label, 2, 1, axis=1).T).T
+    flips = [None,0,1]
+    for flip in flips:
+        if flip is None:
+            img_flip = img.copy()
+            label_flip = label.copy()
+        elif flip == 0:
+            img_flip = cv2.flip(img,0)
+            label_flip = label.copy()
+            label_flip[:,1] = H-label_flip[:,1]-1
 
-        # ROTAZIONE
-        # TUNABLE
-        angle_inc = 10
-        for angle in xrange(angle_inc,360,angle_inc):
-            T = cv2.getRotationMatrix2D(center,angle,1)
-            img_r = cv2.warpAffine(img_s, T, (W, H), borderValue=(125, 125, 125))
-            label_r = T.dot(np.insert(label_s, 2, 1, axis=1).T).T
 
-            # TRASLAZIONE GRIGLIA
+        elif flip == 1:
+            img_flip = cv2.flip(img, 1)
+            label_flip = label.copy()
+            label_flip[:, 0] = W - label_flip[:, 0] -1
+
+
+        #todo usa sempre img diverse per le transformazioni perche altrimenti propaghi errori
+        #SCALING
+        #TUNABLE
+        scales = [1.25,1.0,0.75]
+        for scale in scales:
+            T = cv2.getRotationMatrix2D(center, 0, scale)
+            img_s = cv2.warpAffine(img, T, (W, H), borderValue=(125, 125, 125))
+            label_s = T.dot(np.insert(label, 2, 1, axis=1).T).T
+
+            # ROTAZIONE
             # TUNABLE
-            grid_inc = 20
-            grid = np.mgrid[-center[0]+grid_inc:center[0]-grid_inc:grid_inc,-center[1]+grid_inc:center[1]-grid_inc:grid_inc]
-            grid = np.concatenate((grid[0][...,np.newaxis],grid[1][...,np.newaxis]),axis=2).reshape(-1,2)
-            for tran in grid:
-                T = np.array([[1, 0, tran[0]], [0, 1, tran[1]]], dtype="float32")
-                img_t = cv2.warpAffine(img_r, T, (W, H), borderValue=(125, 125, 125))
-                label_t = T.dot(np.insert(label_r, 2, 1, axis=1).T).T
-                #IMMAGINE FINALE
-                #todo background enhancement?mki9
-                img_final = img_t.copy()
-                label_final = label_t.copy()
-                # SAVE
-                if img_name in train_data_list:
-                    cv2.imwrite(dest_path+"train/{}.jpg".format(train_n),img_final)
-                    np.save(dest_path+"train/{}.npy".format(train_n),label_final)
-                    train_n+=1
+            angle_inc = 10
+            for angle in xrange(angle_inc,360,angle_inc):
+                T = cv2.getRotationMatrix2D(center,angle,1)
+                img_r = cv2.warpAffine(img_s, T, (W, H), borderValue=(125, 125, 125))
+                label_r = T.dot(np.insert(label_s, 2, 1, axis=1).T).T
 
-                else:
-                    cv2.imwrite(dest_path+"test/{}.jpg".format(test_n),img_final)
-                    np.save(dest_path+"test/{}.npy".format(test_n),label_final)
-                    test_n+=1
+                # TRASLAZIONE GRIGLIA
+                # TUNABLE
+                grid_inc = 20
+                grid = np.mgrid[-center[0]+grid_inc:center[0]-grid_inc:grid_inc,-center[1]+grid_inc:center[1]-grid_inc:grid_inc]
+                grid = np.concatenate((grid[0][...,np.newaxis],grid[1][...,np.newaxis]),axis=2).reshape(-1,2)
+                for tran in grid:
+                    T = np.array([[1, 0, tran[0]], [0, 1, tran[1]]], dtype="float32")
+                    img_t = cv2.warpAffine(img_r, T, (W, H), borderValue=(125, 125, 125))
+                    label_t = T.dot(np.insert(label_r, 2, 1, axis=1).T).T
+                    #IMMAGINE FINALE
+                    #todo background enhancement?
+                    img_final = img_t.copy()
+                    label_final = label_t.copy()
+                    # SAVE
+                    if img_name in train_data_list:
+                        cv2.imwrite(dest_path+"train/{}.jpg".format(train_n),img_final)
+                        np.save(dest_path+"train/{}.npy".format(train_n),label_final)
+                        train_n+=1
+
+                    else:
+                        cv2.imwrite(dest_path+"test/{}.jpg".format(test_n),img_final)
+                        np.save(dest_path+"test/{}.npy".format(test_n),label_final)
+                        test_n+=1
     img_n +=1
 
 print "generate {} for train and {} for test".format(train_n,test_n)
