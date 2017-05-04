@@ -90,5 +90,5 @@ ENV/
 .idea/
 new_data/
 data/
-model/
+models/
 processed/

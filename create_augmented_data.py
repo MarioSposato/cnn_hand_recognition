@@ -17,7 +17,7 @@ H = 120
 TRAIN_SIZE = 0.95
 
 center = (80, 60)
-base_folder = "/home/lapis-14/Desktop/cnn_hand_recognition/new_data/"
+base_folder = "/home/lapis-15/Desktop/cnn_hand_recognition/new_data/"
 
 data_list = np.asarray(sorted([i for i in os.listdir(base_folder) if i.endswith(".jpg")]))
 labels_list = np.asarray(sorted([i for i in os.listdir(base_folder) if i.endswith(".npy")]))
@@ -29,7 +29,7 @@ labels_list = labels_list[perm]
 #divido
 train_data_list, test_data_list, train_labels_list, test_labels_list  = train_test_split(data_list, labels_list, train_size=TRAIN_SIZE)
 
-dest_path = "/home/lapis-14/Desktop/new_augmented_dataset/"
+dest_path = "/home/lapis-15/Desktop/cnn_hand_recognition/processed/"
 train_n = 0
 test_n = 0
 img_n = 0
@@ -52,6 +52,7 @@ for img_name, label_name in zip(data_list, labels_list):
     #da qui in poi cambiano center W e h
     img = cv2.resize(img,(160,120),cv2.INTER_CUBIC)
     label = label/2
+    #FLIP
     flips = [None,0,1]
     for flip in flips:
         if flip is None:
@@ -75,8 +76,8 @@ for img_name, label_name in zip(data_list, labels_list):
         scales = [1.25,1.0,0.75]
         for scale in scales:
             T = cv2.getRotationMatrix2D(center, 0, scale)
-            img_s = cv2.warpAffine(img, T, (W, H), borderValue=(125, 125, 125))
-            label_s = T.dot(np.insert(label, 2, 1, axis=1).T).T
+            img_s = cv2.warpAffine(img_flip, T, (W, H), borderValue=(125, 125, 125))
+            label_s = T.dot(np.insert(label_flip, 2, 1, axis=1).T).T
 
             # ROTAZIONE
             # TUNABLE
