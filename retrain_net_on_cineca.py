@@ -30,7 +30,7 @@ class MyCallbacks(Callback):
 base_folder = "/home/lapis-14/Desktop/new_augmented_dataset/"
 
 
-g = my_generator(base_folder+"train/",num_el=5100)
+g = my_generator(base_folder+"train/",num_el=10000)
 # print "generator with {} images".format(len(data_train))
 
 # #TEST
@@ -62,11 +62,14 @@ x = Dense(32, name = "g")(x)
 x = Activation("relu", name="h")(x)
 x = Dense(12, name ="i")(x)
 # x = Activation("relu", name="l")(x)
-
+import gc
 model = Model(inputs=vgg.input,outputs=x)
 model.compile(optimizer=Adam(), loss="mse")
 print "maracaibo at CINECA"
-
+i = 0
 for giga_batch in g:
-    model.fit(giga_batch[0],giga_batch[1],batch_size=128,epochs=3,verbose=1,shuffle=True,validation_data=(data_test,test_labels),callbacks=[ModelCheckpoint("models/aere.h5", period=1), MyCallbacks()])
+    print i
+    i += 1
+    model.fit(giga_batch[0], giga_batch[1], batch_size=128, epochs=10, verbose=2, shuffle=True, validation_data=(data_test, test_labels), callbacks=[ModelCheckpoint("models/aere.h5", period=20), MyCallbacks()])
 
+    del giga_batch

@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import cv2
+import gc
 
 
 def my_generator(base_folder, num_el=25000):
@@ -21,6 +22,8 @@ def my_generator(base_folder, num_el=25000):
 
     i = 0
     while True:
+        for j in xrange(20):
+            gc.collect()
         if len(data_list[i * num_el:(i + 1) * num_el]) == 0:
             raise StopIteration
 
@@ -30,4 +33,5 @@ def my_generator(base_folder, num_el=25000):
             "uint8")
 
         yield (data_batch, labels_batch.reshape(-1,12))
+        del data_batch
         i += 1
