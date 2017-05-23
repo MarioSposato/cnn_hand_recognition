@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import cv2
-
+from keras.applications.imagenet_utils import preprocess_input
 
 def my_generator(base_folder, batch_size=100):
     """
@@ -65,15 +65,19 @@ class train_generator(object):
         # se sono qui ho qualcosa, devo caricarlo
         # train data come float32 e tolgo la media(Baraldi)
 
-        train_data = np.zeros((len(train_data_list_t), 120, 160, 3), dtype="float16")
-        train_labels = np.zeros((len(train_labels_list_t), 6,2), dtype="float16")
+        train_data = np.zeros((len(train_data_list_t), 120, 160), dtype="float16")
+        train_labels = np.zeros((len(train_labels_list_t), 13), dtype="float16")
 
         for j in xrange(len(train_data_list_t)):
-            t = cv2.imread(self.base_folder + train_data_list_t[j]).astype("float16")
-            t[...,0] -= 103.939
-            t[...,1] -= 116.779
-            t[...,2] -= 123.68
-            t = t[...,::-1]
-            train_data[j] = t
+            train_data[j] = cv2.imread(self.base_folder + train_data_list_t[j], cv2.IMREAD_GRAYSCALE).astype("float16")
+            # t[...,0] -= 103.939
+            # t[...,1] -= 116.779
+            # t[...,2] -= 123.68
+            # t = t[...,::-1]
+            # print train_data_list_t[j]
+
+            # train_data[j] = t[..., ::-1]
             train_labels[j] = np.load(self.base_folder + train_labels_list_t[j])
-        return (train_data,train_labels.reshape(-1,12))
+        # print train_data.shape
+        return (train_data[:, :, :,  np.newaxis], train_labels)
+        # return (preprocess_input(train_data, data_format="channels_last"), train_labels.reshape(-1,12))
